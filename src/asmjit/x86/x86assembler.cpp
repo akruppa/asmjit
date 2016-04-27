@@ -733,6 +733,8 @@ _EmitID:
 
 static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Operand* op, uint32_t loggerOptions) {
   if (op->isReg()) {
+    if (loggerOptions & Logger::kOptionGASFormat)
+      sb._appendChar('%');
     X86Assembler_dumpRegister(sb,
       static_cast<const X86Reg*>(op)->getRegType(),
       static_cast<const X86Reg*>(op)->getRegIndex());
@@ -753,16 +755,40 @@ static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Ope
         type = kX86RegTypeGpq;
     }
 
-    sb._appendString(AssemblerX86_getAddressSizeString(op->getSize()));
+    if (!(loggerOptions & Logger::kOptionGASFormat))
+      sb._appendString(AssemblerX86_getAddressSizeString(op->getSize()));
 
     if (seg < kX86SegCount)
       sb._appendString(&X86Assembler_segName[seg * 4]);
 
-    sb._appendChar('[');
+    if (!(loggerOptions & Logger::kOptionGASFormat))
+      sb._appendChar('[');
+    else
+    {
+      if (m->getDisplacement() && !isAbsolute) {
+        uint32_t base = 10;
+        int32_t dispOffset = m->getDisplacement();
+
+        if (dispOffset < 0) {
+          dispOffset = -dispOffset;
+          sb._appendChar('-');
+        }
+
+        if ((loggerOptions & Logger::kOptionHexDisplacement) != 0 && dispOffset > 9) {
+          sb._appendString("0x", 2);
+          base = 16;
+        }
+        sb.appendUInt(static_cast<uint32_t>(dispOffset), base);
+      }
+      sb._appendChar('(');
+    }
+
     switch (m->getMemType()) {
       case kMemTypeBaseIndex:
       case kMemTypeStackIndex:
         // [base + index << shift + displacement]
+        if (loggerOptions & Logger::kOptionGASFormat)
+          sb._appendChar('%');
         X86Assembler_dumpRegister(sb, type, m->getBase());
         break;
 
@@ -793,16 +819,25 @@ static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Ope
         case kX86MemVSibYmm: type = kX86RegTypeYmm; break;
       }
 
-      sb._appendChar('+');
+      if (!(loggerOptions & Logger::kOptionGASFormat))
+        sb._appendChar('+');
+      else
+        sb._appendChar(',');
+      if (loggerOptions & Logger::kOptionGASFormat)
+        sb._appendChar('%');
       X86Assembler_dumpRegister(sb, type, m->getIndex());
 
-      if (m->getShift()) {
-        sb._appendChar('*');
+      if (m->getShift() || (loggerOptions & Logger::kOptionGASFormat)) {
+        if (!(loggerOptions & Logger::kOptionGASFormat))
+          sb._appendChar('+');
+        else
+          sb._appendChar(',');
         sb._appendChar("1248"[m->getShift() & 3]);
       }
     }
 
-    if (m->getDisplacement() && !isAbsolute) {
+    if (m->getDisplacement() && !isAbsolute
+        && !(loggerOptions & Logger::kOptionGASFormat)) {
       uint32_t base = 10;
       int32_t dispOffset = m->getDisplacement();
 
@@ -820,12 +855,17 @@ static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Ope
       sb.appendUInt(static_cast<uint32_t>(dispOffset), base);
     }
 
-    sb._appendChar(']');
+    if (!(loggerOptions & Logger::kOptionGASFormat))
+      sb._appendChar(']');
+    else
+      sb._appendChar(')');
   }
   else if (op->isImm()) {
     const Imm* i = static_cast<const Imm*>(op);
     int64_t val = i->getInt64();
 
+    if (loggerOptions & Logger::kOptionGASFormat)
+      sb._appendChar('$');
     if ((loggerOptions & Logger::kOptionHexImmediate) != 0 && static_cast<uint64_t>(val) > 9)
       sb.appendUInt(static_cast<uint64_t>(val), 16);
     else
@@ -859,31 +899,73 @@ static bool X86Assembler_dumpInstruction(StringBuilder& sb,
   if (options & kX86InstOptionLock)
     sb._appendString("lock ", 5);
 
-  if (options & kInstOptionShortForm)
+  if (!(loggerOptions & Logger::kOptionGASFormat) && options & kInstOptionShortForm)
     sb._appendString("short ", 6);
 
   // Dump instruction name.
   sb._appendString(_x86InstInfo[code].getInstName());
 
+  if ((loggerOptions & Logger::kOptionGASFormat) && o0->isMem())
+  {
+    switch (o0->getSize())
+    {
+      case 1 : sb._appendChar('b');
+               break;
+      case 2 : sb._appendChar('w');
+               break;
+      case 4 : sb._appendChar('l');
+               break;
+      case 8 : sb._appendChar('q');
+               break;
+    }
+  }
+
   // Dump operands.
-  if (!o0->isNone()) {
-    sb._appendChar(' ');
-    X86Assembler_dumpOperand(sb, arch, o0, loggerOptions);
-  }
+  if ((loggerOptions & Logger::kOptionGASFormat) == 0)
+  {
+    if (!o0->isNone()) {
+      sb._appendChar(' ');
+      X86Assembler_dumpOperand(sb, arch, o0, loggerOptions);
+    }
 
-  if (!o1->isNone()) {
-    sb._appendString(", ", 2);
-    X86Assembler_dumpOperand(sb, arch, o1, loggerOptions);
-  }
+    if (!o1->isNone()) {
+      sb._appendString(", ", 2);
+      X86Assembler_dumpOperand(sb, arch, o1, loggerOptions);
+    }
 
-  if (!o2->isNone()) {
-    sb._appendString(", ", 2);
-    X86Assembler_dumpOperand(sb, arch, o2, loggerOptions);
-  }
+    if (!o2->isNone()) {
+      sb._appendString(", ", 2);
+      X86Assembler_dumpOperand(sb, arch, o2, loggerOptions);
+    }
 
-  if (!o3->isNone()) {
-    sb._appendString(", ", 2);
-    X86Assembler_dumpOperand(sb, arch, o3, loggerOptions);
+    if (!o3->isNone()) {
+      sb._appendString(", ", 2);
+      X86Assembler_dumpOperand(sb, arch, o3, loggerOptions);
+    }
+  }
+  else
+  {
+    if (!o0->isNone())
+      sb._appendChar('\t');
+    if (!o3->isNone()) {
+      X86Assembler_dumpOperand(sb, arch, o3, loggerOptions);
+      sb._appendChar(',');
+    }
+
+    if (!o2->isNone()) {
+      X86Assembler_dumpOperand(sb, arch, o2, loggerOptions);
+      sb._appendChar(',');
+    }
+
+    if (!o1->isNone()) {
+      X86Assembler_dumpOperand(sb, arch, o1, loggerOptions);
+      if (_x86InstInfo[code].getEncodingId() != kX86InstEncodingIdX86Jecxz)
+          sb._appendChar(',');
+    }
+
+    if (!o0->isNone() && _x86InstInfo[code].getEncodingId() != kX86InstEncodingIdX86Jecxz) {
+      X86Assembler_dumpOperand(sb, arch, o0, loggerOptions);
+    }
   }
 
   return true;

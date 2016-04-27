@@ -75,9 +75,11 @@ struct ASMJIT_VIRTAPI Logger {
     kOptionHexImmediate = 1,
     //! Whether to output displacements as hexadecimal numbers.
     kOptionHexDisplacement = 2,
+    //! Whether to output in GAS/AT&T format.
+    kOptionGASFormat = 4,
 
     //! Count of logger options.
-    kOptionCount = 3
+    kOptionCount = 4
   };
 
   // --------------------------------------------------------------------------
