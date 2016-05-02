@@ -68,7 +68,7 @@
 // (like Compiler).
 //
 // AsmJit features are enabled by default.
-// #define ASMJIT_DISABLE_COMPILER   // Disable Compiler (completely).
+#define ASMJIT_DISABLE_COMPILER   // Disable Compiler (completely).
 // #define ASMJIT_DISABLE_LOGGER     // Disable Logger (completely).
 // #define ASMJIT_DISABLE_TEXT       // Disable everything that contains text
 //                                   // representation (instructions, errors, ...).
