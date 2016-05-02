@@ -427,7 +427,7 @@ struct ASMJIT_VIRTAPI Assembler {
     //! for alignment between 1 to 11 bytes. Also when `X86Compiler` is used,
     //! it can add REX prefixes into the code to make some instructions greater
     //! so no alignment sequence is needed.
-    kOptionOptimizedAlign = 0,
+    kOptionOptimizedAlign = 1,
 
     //! Emit jump-prediction hints (`Assembler` and `Compiler`).
     //!
