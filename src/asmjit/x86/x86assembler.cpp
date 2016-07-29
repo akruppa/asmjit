@@ -964,11 +964,11 @@ static bool X86Assembler_dumpInstruction(StringBuilder& sb,
 
     if (!o1->isNone()) {
       X86Assembler_dumpOperand(sb, arch, o1, loggerOptions);
-      if (_x86InstInfo[code].getEncodingId() != kX86InstEncodingIdX86Jecxz)
+      if (_x86InstInfo[code].getEncoding() != kX86InstEncodingX86Jecxz)
           sb._appendChar(',');
     }
 
-    if (!o0->isNone() && _x86InstInfo[code].getEncodingId() != kX86InstEncodingIdX86Jecxz) {
+    if (!o0->isNone() && _x86InstInfo[code].getEncoding() != kX86InstEncodingX86Jecxz) {
       X86Assembler_dumpOperand(sb, arch, o0, loggerOptions);
     }
   }
