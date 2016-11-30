@@ -320,7 +320,7 @@ Error Assembler::bind(const Label& label) noexcept {
     if (!_logger->hasOption(Logger::kOptionBinaryForm))
       binSize = kInvalidIndex;
 
-    LogUtil::formatLine(sb, nullptr, binSize, 0, 0, _comment);
+    LogUtil::formatLine(sb, nullptr, binSize, 0, 0, _comment, _logger->getCommentSep());
     _logger->logString(Logger::kStyleLabel, sb.getData(), sb.getLength());
   }
 #endif // !ASMJIT_DISABLE_LOGGER

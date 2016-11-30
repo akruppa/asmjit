@@ -41,7 +41,7 @@ struct LogUtil {
 
   static bool formatLine(
     StringBuilder& sb,
-    const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment) noexcept;
+    const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment, char commentSep) noexcept;
 };
 #endif // ASMJIT_EXPORTS
 
@@ -141,6 +141,17 @@ class ASMJIT_VIRTAPI Logger {
   }
 
   // --------------------------------------------------------------------------
+  // [Comment formatting]
+  // --------------------------------------------------------------------------
+  ASMJIT_INLINE void setCommentSep(const char newCommentSep) noexcept {
+    commentSep = newCommentSep;
+  }
+
+  ASMJIT_INLINE char getCommentSep() const noexcept {
+    return commentSep;
+  }
+
+  // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
@@ -149,6 +160,7 @@ class ASMJIT_VIRTAPI Logger {
 
   //! Indentation.
   char _indentation[12];
+  char commentSep;
 };
 
 // ============================================================================

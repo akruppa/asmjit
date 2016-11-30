@@ -26,7 +26,7 @@ namespace asmjit {
 // [asmjit::LogUtil]
 // ============================================================================
 
-bool LogUtil::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment) noexcept {
+bool LogUtil::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment, const char commentSep) noexcept {
   size_t currentLen = sb.getLength();
   size_t commentLen = comment ? Utils::strLen(comment, kMaxCommentLength) : 0;
 
@@ -34,7 +34,7 @@ bool LogUtil::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binLe
 
   if ((binLen != 0 && binLen != kInvalidIndex) || commentLen) {
     size_t align = kMaxInstLength;
-    char sep = ';';
+    char sep = commentSep;
 
     for (size_t i = (binLen == kInvalidIndex); i < 2; i++) {
       size_t begin = sb.getLength();
@@ -82,6 +82,7 @@ bool LogUtil::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binLe
 
 Logger::Logger() noexcept {
   _options = 0;
+  commentSep = ';';
   ::memset(_indentation, 0, ASMJIT_ARRAY_SIZE(_indentation));
 }
 

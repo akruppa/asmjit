@@ -4337,9 +4337,9 @@ _EmitDone:
     X86Assembler_dumpInstruction(sb, Arch, code, options, o0, o1, o2, o3, loggerOptions);
 
     if ((loggerOptions & Logger::kOptionBinaryForm) != 0)
-      LogUtil::formatLine(sb, self->_cursor, (intptr_t)(cursor - self->_cursor), dispSize, imLen, self->_comment);
+      LogUtil::formatLine(sb, self->_cursor, (intptr_t)(cursor - self->_cursor), dispSize, imLen, self->_comment, self->_logger->getCommentSep());
     else
-      LogUtil::formatLine(sb, nullptr, kInvalidIndex, 0, 0, self->_comment);
+      LogUtil::formatLine(sb, nullptr, kInvalidIndex, 0, 0, self->_comment, self->_logger->getCommentSep());
 
 # if defined(ASMJIT_DEBUG)
     if (self->_logger)
